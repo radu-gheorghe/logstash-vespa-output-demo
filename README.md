@@ -41,6 +41,6 @@ A simple CSV file with blog posts. You can replace it with your own data, just m
   - `document_type` in [logstash.conf](logstash.conf#L39)
   - the document type in [services.xml](blog_posts_app/services.xml#L77)
 - If you change the CSV file name, make sure to update:
-  - [logstash.conf](logstash.conf) to point to the right filename
+  - [logstash.conf](logstash.conf#L5) to point to the right filename
   - the volume path in [docker-compose.yml](docker-compose.yml#L24).
 
