@@ -11,13 +11,15 @@ cd logstash-vespa-output-demo
 # run the docker compose file with Vespa and Logstash
 docker compose up # or podman compose up
 
-# once everything settles, you can check Vespa for the documents
+# profit
 curl -XPOST -H "Content-Type: application/json" -d\
   '{  "yql": "select * from sources * where true"}'\
    'http://localhost:8080/search/' | jq .
 ```
 
-## Details
+If you want to profit more, check out the [Vespa Query Language docs](https://docs.vespa.ai/en/reference/query-language-reference.html) and its sister pages.
+
+## Details (so you can bring your own data)
 
 ### Vespa
 
@@ -35,7 +37,7 @@ A very flexible ETL tool. More details [here](https://www.elastic.co/logstash). 
 
 A simple CSV file with blog posts. You can replace it with your own data, just make sure to update:
 - [logstash.conf](logstash.conf) to parse the right fields.
-- The [Vespa schema](blog_posts_app/schemas/post.sd) to match the fields.
+- The [Vespa schema](blog_posts_app/schemas/post.sd) to match those fields. We have [IDE support](https://docs.vespa.ai/en/ide-support.html) to help with that.
 - If you change the document type from `post` to something else, make sure to update:
   - the schema file name: it needs to match the document type name within it
   - `document_type` in [logstash.conf](logstash.conf#L39)
