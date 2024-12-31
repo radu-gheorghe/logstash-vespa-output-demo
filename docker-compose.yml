@@ -1,0 +1,56 @@
+version: '3'
+services:
+  # Vespa container
+  vespa:
+    image: vespaengine/vespa
+    container_name: logstash-demo-vespa
+    hostname: logstash-demo-vespa
+    ports:
+      - "8080:8080"
+      - "19071:19071"
+
+  # logstash container
+  logstash:
+    depends_on:
+      vespa
+    image: logstash:8.17.0
+    container_name: logstash-demo-logstash
+    hostname: logstash-demo-logstash
+    # logstash config
+    volumes:
+      # main config file
+      - ./logstash.conf:/usr/share/logstash/logstash.conf
+      # blog_posts.csv file
+      - ./blog_posts.csv:/tmp/blog_posts.csv
+      # application package. Not needed if you deploy from the host machine with `vespa deploy` (see below)
+      - ./blog_posts_app:/tmp/blog_posts_app
+      # empty logstash.yml to overwrite the defaults which are not needed
+      - ./logstash.yml:/usr/share/logstash/config/logstash.yml
+    command:
+      - /bin/bash
+      - -c
+      - |
+        ###### deploy application package ######
+        ### only needed once
+        ### can also be done from the host machine with `vespa deploy`
+        ### see https://docs.vespa.ai/en/vespa-cli.html
+        ###########################################
+        # download zip to compress the application package
+        apt download zip
+        mkdir zip
+        dpkg-deb -xv zip_*.deb zip
+        #
+        while ! curl -f http://vespa:19071/ ; do echo "Waiting for config server to be healthy..."; sleep 5; done
+        #
+        # deploy the application package
+        (cd /tmp/blog_posts_app && /usr/share/logstash/zip/usr/bin/zip -r - .) | \
+          curl --header Content-Type:application/zip --data-binary @- \
+            vespa:19071/application/v2/tenant/default/prepareandactivate
+        #
+        while ! curl -f http://vespa:8080/ ; do echo "Waiting for Vespa endpoint after package deploy..."; sleep 5; done
+        #
+        ###########################################
+        # install the Vespa output plugin
+        /usr/share/logstash/bin/logstash-plugin install logstash-output-vespa_feed
+        # run logstash
+        /usr/share/logstash/bin/logstash -f /usr/share/logstash/logstash.conf

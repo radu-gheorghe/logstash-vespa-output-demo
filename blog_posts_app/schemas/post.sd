@@ -1,0 +1,15 @@
+schema post {
+    document post {
+        field id type string {
+            indexing: summary | attribute
+        }
+
+        field title type string {
+            indexing: summary | index
+        }
+
+        field content type string {
+            indexing: summary | index
+        }
+    }
+}
